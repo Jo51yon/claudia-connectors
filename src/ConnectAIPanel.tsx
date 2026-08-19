@@ -184,8 +184,8 @@ export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, sk
       {cliCommand && (
         <div style={{ marginTop: '.5rem' }}>
           <code style={{
-            display: 'block', padding: '8px 10px', background: 'var(--surface)', borderRadius: 'var(--radius)',
-            border: '1px solid var(--line)', fontSize: 13, overflowX: 'auto', whiteSpace: 'pre',
+            display: 'block', padding: '8px 10px', background: 'var(--claudia-kernel-surface, #f5f5f5)', borderRadius: 'var(--claudia-kernel-radius, 8px)',
+            border: '1px solid var(--claudia-kernel-line, #e0e0e0)', fontSize: 13, overflowX: 'auto', whiteSpace: 'pre',
           }}>{cliCommand}</code>
         </div>
       )}
