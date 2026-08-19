@@ -99,9 +99,17 @@ export interface ConnectAIPanelProps {
   mcpUrl: string;
   /** Supabase client with .rpc(), used for claudia_mcp_my_connections / claudia_mcp_revoke_connection. */
   supabase: { rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: any; error: any }> };
+  /**
+   * Added v1.1.0. Optional download link for this project's own skill doc, e.g.
+   * `${SUPABASE_URL}/functions/v1/claudia-skill-source?slug=petgi` — the same
+   * claudia-skill-source pattern already shared across products (see component-library.md),
+   * generalised here rather than left as a PETGI-only addition, since any product with a
+   * skill doc benefits from telling a newly-connected client where to find it.
+   */
+  skillUrl?: string;
 }
 
-export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase }: ConnectAIPanelProps) {
+export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, skillUrl }: ConnectAIPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,6 +191,13 @@ export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase }: 
       )}
 
       <p className="dim" style={{ fontSize: '.78rem', marginTop: '.4rem' }}>{provider.instructions}</p>
+
+      {skillUrl && (
+        <p style={{ fontSize: '.82rem', marginTop: '.5rem' }}>
+          Once connected, download the {productName} skill below and give it to your client — it explains how to use the connector and which tool to reach for, for what.{' '}
+          <a className="btn quiet sm" href={skillUrl} download={`${slug}-SKILL.md`}>Download {productName} skill</a>
+        </p>
+      )}
 
       {!loading && connections.length > 0 && (
         <table className="table" style={{ marginTop: '1rem', fontSize: '.82rem' }}>
