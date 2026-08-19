@@ -4,6 +4,16 @@ Semantic versioning: MAJOR = a prop, exported type, or default behaviour changed
 could break an existing consumer without any code change on their side. MINOR = additive only.
 Consuming projects should pin to a tag (`#v1.0.0`), never `#main`.
 
+## v1.1.1 — 2026-08-19
+
+Patch. `supabase` prop's `rpc()` return type was typed as `Promise<...>`, but real
+`@supabase/supabase-js` returns a `PostgrestFilterBuilder` — thenable, but missing `.catch`/
+`.finally`/`Symbol.toStringTag`, so it fails structural assignability against `Promise` even
+though `.then()` (the only method this component actually calls) works identically. Caught
+integrating into PETGI's real Settings.tsx, not in isolation — widened to `PromiseLike<...>`,
+the minimal type that matches both what Supabase actually returns and what this component
+actually uses.
+
 ## v1.1.0 — 2026-08-19
 
 Additive only, no consumer needs to change anything to stay on this version. Adds optional
