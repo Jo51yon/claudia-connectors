@@ -36,7 +36,7 @@ import { useCallback, useEffect, useState } from 'react';
  * something to hardcode again per project.
  */
 
-export type ConnectorKind = 'oauth_browser' | 'cli_oauth' | 'cli_config' | 'api_config' | 'ide_config';
+export type ConnectorKind = 'oauth_browser' | 'cli_oauth' | 'cli_config' | 'api_config' | 'ide_config' | 'deeplink';
 
 export interface AIProvider {
   key: string;
@@ -44,10 +44,16 @@ export interface AIProvider {
   kind: ConnectorKind;
   /** Short instruction shown under the provider's own button/snippet. */
   instructions: string;
-  /** If kind === 'oauth_browser', the deep link to open after copying the URL. */
-  deepLink?: string;
+  /** If kind === 'oauth_browser' or 'deeplink', builds the real URL to open. */
+  deepLink?: (params: { slug: string; url: string; productName: string }) => string;
   /** If kind involves a CLI, the command template. {url} and {slug} are substituted. */
   cliCommand?: string;
+}
+
+// Base64, URL-safe-tolerant, of a UTF-8 string -- for deep links whose config travels
+// base64-encoded in the query string (Cursor).
+function b64(s: string): string {
+  return btoa(unescape(encodeURIComponent(s)));
 }
 
 export const PROVIDERS: AIProvider[] = [
@@ -55,8 +61,36 @@ export const PROVIDERS: AIProvider[] = [
     key: 'claude',
     label: 'Claude',
     kind: 'oauth_browser',
-    instructions: 'Connect copies the endpoint and opens Claude\u2019s connector settings \u2014 choose "Add custom connector" and paste. Claude has no link that pre-fills this yet, so that paste is the one manual step.',
-    deepLink: 'https://claude.ai/settings/connectors',
+    instructions: 'Opens Claude\u2019s "Add custom connector" dialog with the name and URL already filled in \u2014 confirm and sign in, nothing to type.',
+    // Real, verified query params (confirmed against a real Anthropic-tracked GitHub issue,
+    // not assumed): modal=add-custom-connector + mcpName/mcpServerUrl pre-populate the Name
+    // and Remote URL fields. Corrected 2026-08-19 -- earlier versions of this file claimed
+    // Claude had no such link at all, which was wrong.
+    deepLink: ({ url, productName }) =>
+      'https://claude.ai/settings/connectors?modal=add-custom-connector' +
+      `&mcpName=${encodeURIComponent(productName)}` +
+      `&mcpServerUrl=${encodeURIComponent(url)}`,
+  },
+  {
+    key: 'cursor',
+    label: 'Cursor',
+    kind: 'deeplink',
+    instructions: 'Opens Cursor and prompts to install this MCP server; Cursor then asks you to sign in to your own account. Deep links are occasionally flaky on some Linux setups (a known Cursor issue, not specific to this server) \u2014 the URL is always available below as a fallback.',
+    // Real, official schema (cursor.com/docs/mcp/install-links): base64 JSON config, and that
+    // config REQUIRES a "type" field ("http" here) -- verified against Cursor's own docs and
+    // multiple real working examples. A config missing "type" is a real, easy mistake to make
+    // (found one while researching this).
+    deepLink: ({ url, productName }) =>
+      `cursor://anysphere.cursor-deeplink/mcp/install?name=${encodeURIComponent(productName)}` +
+      `&config=${b64(JSON.stringify({ type: 'http', url }))}`,
+  },
+  {
+    key: 'vscode',
+    label: 'VS Code',
+    kind: 'deeplink',
+    instructions: 'Opens VS Code and adds this MCP server (also usable from GitHub Copilot\u2019s agent mode once added). VS Code will prompt you to sign in.',
+    deepLink: ({ url, productName }) =>
+      `vscode:mcp/install?${encodeURIComponent(JSON.stringify({ name: productName, url }))}`,
   },
   {
     key: 'kimi',
@@ -75,7 +109,7 @@ export const PROVIDERS: AIProvider[] = [
     key: 'copilot',
     label: 'GitHub Copilot',
     kind: 'ide_config',
-    instructions: 'Works in VS Code, JetBrains, Eclipse, Xcode and Visual Studio via mcp.json (download below), or paste the URL into Copilot Studio\u2019s "Add an MCP server" wizard. The github.com/copilot web chat does not support custom connectors yet.',
+    instructions: 'The VS Code entry above covers Copilot\u2019s agent mode there. In JetBrains, Eclipse, Xcode or Visual Studio, or in Copilot Studio\u2019s own "Add an MCP server" wizard, paste the URL below or download the config. The github.com/copilot web chat does not support custom connectors yet.',
   },
   {
     key: 'glm',
@@ -129,9 +163,9 @@ export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, sk
     await navigator.clipboard.writeText(mcpUrl);
     setCopied('url'); setTimeout(() => setCopied(null), 2000);
   }
-  async function connectOAuth(provider: AIProvider) {
-    await copyUrl();
-    if (provider.deepLink) window.open(provider.deepLink, '_blank', 'noopener');
+  function connectOAuth(provider: AIProvider) {
+    if (!provider.deepLink) return;
+    window.open(provider.deepLink({ slug, url: mcpUrl, productName }), '_blank', 'noopener');
   }
   function downloadConfig() {
     const config = { mcpServers: { [slug]: { type: 'http', url: mcpUrl } } };
@@ -174,7 +208,7 @@ export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, sk
       <div className="filters" style={{ marginTop: '.6rem' }}>
         <input className="field" readOnly style={{ flex: '1 1 320px', fontFamily: 'monospace', fontSize: '.82rem' }}
                value={mcpUrl} onFocus={(e) => e.target.select()} />
-        {provider.kind === 'oauth_browser' && (
+        {(provider.kind === 'oauth_browser' || provider.kind === 'deeplink') && (
           <button className="btn sm" onClick={() => connectOAuth(provider)}>Connect to {provider.label}</button>
         )}
         <button className="btn quiet sm" onClick={copyUrl}>{copied === 'url' ? 'Copied' : 'Copy URL'}</button>

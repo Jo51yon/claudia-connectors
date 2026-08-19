@@ -4,6 +4,31 @@ Semantic versioning: MAJOR = a prop, exported type, or default behaviour changed
 could break an existing consumer without any code change on their side. MINOR = additive only.
 Consuming projects should pin to a tag (`#v1.0.0`), never `#main`.
 
+## v1.2.0 — 2026-08-19
+
+Corrects a real inaccuracy from v1.0.0, adds two real providers. Not hypothetical improvements
+— found while checking SafeSpaces' own, more mature `ConnectMcpPanel`/`mcpProviders.ts` for a
+genuine cross-codebase sync, then independently verified each claim before bringing anything
+back rather than copying it blind:
+
+- **Claude now has a real one-click deep link.** v1.0.0-v1.1.2 claimed "Claude has no link
+  that pre-fills this yet" — wrong. Confirmed via a real Anthropic-tracked GitHub issue
+  (anthropics/claude-ai-mcp#74): `?modal=add-custom-connector&mcpName=...&mcpServerUrl=...`
+  genuinely pre-populates the Add Custom Connector dialog. The "copy the URL, paste it
+  yourself" step this package always described for Claude was never actually necessary.
+- **Cursor**, added: `cursor://anysphere.cursor-deeplink/mcp/install?name=...&config=...`
+  (base64 JSON). Verified against Cursor's own official docs — and caught a real bug while
+  verifying, not copied from SafeSpaces' implementation as-is: the config JSON requires a
+  `"type"` field (`"http"` here); SafeSpaces' own `mcpProviders.ts` sends `{url}` without one,
+  which the schema doesn't call for. Fixed here, not propagated.
+- **VS Code**, added: `vscode:mcp/install?<url-encoded-json>`.
+- `deepLink` changed from a static string to a function
+  `({slug, url, productName}) => string` so it can build the real per-connection URL instead
+  of a bare settings page. Export *names* unchanged (verified: `check-breaking-exports.mjs`
+  passes clean) and no known real consumer constructs an `AIProvider` object directly — all
+  three current consumers only ever pass props to `<ConnectAIPanel>` — so this ships as MINOR,
+  not MAJOR, on the basis of real consumer impact, not just "the type changed."
+
 ## v1.1.2 — 2026-08-19
 
 Patch. Internal styling only referenced `var(--surface)`/`var(--radius)`/`var(--line)` with no
