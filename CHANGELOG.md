@@ -4,6 +4,15 @@ Semantic versioning: MAJOR = a prop, exported type, or default behaviour changed
 could break an existing consumer without any code change on their side. MINOR = additive only.
 Consuming projects should pin to a tag (`#v1.0.0`), never `#main`.
 
+## v1.1.2 — 2026-08-19
+
+Patch. Internal styling only referenced `var(--surface)`/`var(--radius)`/`var(--line)` with no
+fallback at all — invalid (and therefore unstyled) in any host that doesn't define those exact
+names, which is every host checked so far. Switched to the shared `--claudia-kernel-*`
+semantic vocabulary (see `kernel-design-tokens.md` in the claudia repo) with real fallback
+values, so this renders correctly in any host with zero adapter present, and picks up each
+host's real theme automatically once one exists.
+
 ## v1.1.1 — 2026-08-19
 
 Patch. `supabase` prop's `rpc()` return type was typed as `Promise<...>`, but real
