@@ -1,0 +1,26 @@
+{
+  "name": "@jo51yon/claudia-connectors",
+  "version": "1.0.0",
+  "description": "Claudia shared AI-connector UI (ConnectAIPanel) -- multi-provider Connect-an-AI-assistant panel. See docs/_platform/component-library.md in the claudia repo.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0"
+  }
+}
