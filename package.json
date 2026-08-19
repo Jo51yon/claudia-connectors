@@ -1,6 +1,6 @@
 {
   "name": "@jo51yon/claudia-connectors",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Claudia shared AI-connector UI (ConnectAIPanel) -- multi-provider Connect-an-AI-assistant panel. See docs/_platform/component-library.md in the claudia repo.",
   "type": "module",
   "main": "./dist/index.js",
