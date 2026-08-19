@@ -4,6 +4,14 @@ Semantic versioning: MAJOR = a prop, exported type, or default behaviour changed
 could break an existing consumer without any code change on their side. MINOR = additive only.
 Consuming projects should pin to a tag (`#v1.0.0`), never `#main`.
 
+## v1.1.0 — 2026-08-19
+
+Additive only, no consumer needs to change anything to stay on this version. Adds optional
+`skillUrl` prop: renders a "Download {productName} skill" link, generalising a feature found
+in PETGI's original hand-written Settings.tsx section (which downloaded via
+`claudia-skill-source?slug=petgi`, itself already a shared pattern per component-library.md)
+rather than dropping it during extraction.
+
 ## v1.0.0 — 2026-08-19
 
 First release. `ConnectAIPanel` — generic, multi-provider "Connect an AI assistant" panel,
