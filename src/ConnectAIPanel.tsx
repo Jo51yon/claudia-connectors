@@ -98,7 +98,7 @@ export interface ConnectAIPanelProps {
   /** Proxied MCP endpoint, e.g. https://claudia.sicoru.org/mcp/{slug} — must already exist. */
   mcpUrl: string;
   /** Supabase client with .rpc(), used for claudia_mcp_my_connections / claudia_mcp_revoke_connection. */
-  supabase: { rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: any; error: any }> };
+  supabase: { rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: any; error: any }> };
   /**
    * Added v1.1.0. Optional download link for this project's own skill doc, e.g.
    * `${SUPABASE_URL}/functions/v1/claudia-skill-source?slug=petgi` — the same
