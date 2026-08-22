@@ -141,14 +141,23 @@ export interface ConnectAIPanelProps {
    * skill doc benefits from telling a newly-connected client where to find it.
    */
   skillUrl?: string;
+  /**
+   * Added v1.1.3. Overrides the built-in provider list -- filter it (only show what's
+   * relevant), reorder it, or add a project-specific entry (e.g. an internal AI tool) by
+   * supplying additional AIProvider objects. Defaults to the full built-in PROVIDERS array,
+   * unchanged behaviour for every existing consumer.
+   */
+  providers?: AIProvider[];
+  /** Added v1.1.3. Which provider tab is active on first render. Defaults to 'claude'. */
+  defaultProviderKey?: string;
 }
 
-export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, skillUrl }: ConnectAIPanelProps) {
+export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, skillUrl, providers = PROVIDERS, defaultProviderKey = 'claude' }: ConnectAIPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [activeProvider, setActiveProvider] = useState<string>('claude');
+  const [activeProvider, setActiveProvider] = useState<string>(defaultProviderKey);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -182,7 +191,14 @@ export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, sk
     load();
   }
 
-  const provider = PROVIDERS.find((p) => p.key === activeProvider)!;
+  if (providers.length === 0) {
+    return (
+      <div className="card" style={{ marginTop: '1rem' }}>
+        <p className="err" style={{ fontSize: '.85rem' }}>ConnectAIPanel was given an empty providers list -- nothing to show.</p>
+      </div>
+    );
+  }
+  const provider = providers.find((p) => p.key === activeProvider) ?? providers[0];
   const cliCommand = provider.cliCommand?.replace('{slug}', slug).replace('{url}', mcpUrl);
 
   return (
@@ -198,7 +214,7 @@ export default function ConnectAIPanel({ slug, productName, mcpUrl, supabase, sk
       </p>
 
       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: '.75rem' }}>
-        {PROVIDERS.map((p) => (
+        {providers.map((p) => (
           <button key={p.key} type="button"
             className={p.key === activeProvider ? 'btn sm' : 'btn quiet sm'}
             onClick={() => setActiveProvider(p.key)}>{p.label}</button>

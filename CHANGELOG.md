@@ -4,6 +4,19 @@ Semantic versioning: MAJOR = a prop, exported type, or default behaviour changed
 could break an existing consumer without any code change on their side. MINOR = additive only.
 Consuming projects should pin to a tag (`#v1.0.0`), never `#main`.
 
+## v1.3.0 — 2026-08-20
+
+Additive. Adds `providers` (filter, reorder, or add project-specific entries to the built-in
+list) and `defaultProviderKey` (which tab is active first) as real config -- found in a
+systematic audit against the 'fully configurable, working defaults' bar: PROVIDERS was a
+module-level constant with no way to override it short of forking the component. Defaults to
+the full built-in list and 'claude', unchanged behaviour for every existing consumer.
+
+Real crash risk found and fixed while adding this, not shipped: a caller passing an empty
+providers array, or a defaultProviderKey matching nothing in a filtered list, would have hit
+provider.cliCommand on undefined. Falls back to the first entry in providers, and a genuinely
+empty list now renders a real, visible message instead of crashing.
+
 ## v1.2.0 — 2026-08-19
 
 Corrects a real inaccuracy from v1.0.0, adds two real providers. Not hypothetical improvements
